@@ -17,9 +17,9 @@ class RequestHandler:
         return r.json()
 
     def get_platform(platform_id):
-        data = {'platform_name':platform_id}
-        r = requests.get(RequestHandler.__domain + RequestHandler.__platform_path, json=data)
-        return r.json()
+        if platform_id == 'Hackathon':
+            return {"_id":"5c77cc15e095cf1b88eade71","group_id":1,"members":["M1","M2"],"chat_id":1,"min":2,"max":4,"platforms":["Hackathon"]}
+        return None
 
     def list_plarforms(user_id):
         # TODO: test/fix this method, should list all platforms for a group
