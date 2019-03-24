@@ -55,6 +55,15 @@ a {
     color: black;
 }
 
+.fileLinks {
+    color: blue;
+}
+
+a.fileLinks:hover {
+    color: white;
+    background: blue;
+}
+
 /* Active Button Link */
 #pressed {
     color: white;
@@ -116,4 +125,8 @@ a {
 
 #logoutButton:hover {
     background-color: black;
+}
+
+.HelpText {
+    text-align: center;
 }

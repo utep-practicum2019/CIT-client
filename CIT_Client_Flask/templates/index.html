@@ -9,12 +9,14 @@
     </head>
 
     <body>
+
         <div class="container-fluid">
             <nav class="navbar navbar-light bg-white">
                 <img id="logo" src="http://www.teamorlando.org/wp-content/uploads/2012/11/ARL-2016.jpg">
                 <div class="col-4">
                     <div id="userDisplay">
                         <h5 id="user">Username: {{ username }}</h5>
+                        <h6>Your Remote IP: {{ remote_ip }}</h6>
                             {% if session['logged_in'] == True %}
                                 <a id="logoutButton" href="/logout" class="btn btn-outline-dark btn-sm" role="button">Log out</a>
                             {% endif %}
@@ -30,6 +32,9 @@
         </div>
         <div class="container-fluid">
             <ul class="nav nav-pills mb-3" id="platforms" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="pill" href="#news" role="tab" aria-controls="pills-news" aria-selected="false">News</a>
+                </li>
                 {% for platform in platforms %}
                 <li class="nav-item">
                     <a class="nav-link" data-toggle="pill" href={{re.sub(' +', '',"#{}".format(platform))}} role="tab" aria-controls={{ re.sub(' +', '',"pills-{}".format(platform)) }} aria-selected="true">{{ platform }}</a>
@@ -40,11 +45,73 @@
 {#                </li>#}
             </ul>
             <div class="tab-content" id="subplatformsArea">
+                <div class="tab-pane fade" id="news" role="tabpanel" aria-labelledby="pills-news-tab">
+                    <h1 class="HelpText">News</h1>
+                    <h5 class="HelpText">Hello and welcome to the Collaborative Innovative Testbed</h5>
+                    <h6 class="HelpText">The news page contains all the information pertaining to any new changes</h6>
+                    <br>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque consequat ligula mollis ullamcorper
+                        bibendum. Pellentesque nec mauris sollicitudin, auctor enim id, volutpat ligula. Vivamus blandit, ligula
+                        sed scelerisque elementum, velit ante congue libero, nec aliquam nibh est nec eros. Sed lacinia efficitur
+                        nunc non rutrum. In hac habitasse platea dictumst. Pellentesque habitant morbi tristique senectus et netus
+                        et malesuada fames ac turpis egestas. Suspendisse ut mattis turpis. Quisque iaculis arcu vel viverra finibus.
+                        Curabitur tempor mauris mi, vitae aliquam sem ornare nec. Pellentesque in erat enim. Vivamus justo felis,
+                        venenatis nec vulputate eu, ornare sed eros. Maecenas at fringilla diam. Nam gravida placerat ligula quis
+                        dapibus. Pellentesque porta, tortor vel euismod scelerisque, augue elit congue odio, facilisis placerat
+                        nulla eros eget orci.<br><br>
+
+                        The following file contains the file needed for the Hackathon:    <a class="fileLinks"
+                                                                                          download="udpecho.pcap"
+                                                                                          href="/Files/udpecho.pcap">udpecho.pcap</a>
+                        <br><br>
+
+                        Sed et gravida diam. Integer a ipsum at arcu consequat vestibulum quis ac eros. Ut nec orci quis nunc varius
+                        consequat. Mauris id augue quis velit imperdiet euismod in et urna. Phasellus sit amet volutpat enim.
+                        Suspendisse a tellus sed est tempus faucibus non eu elit. Aliquam erat volutpat.<br>
+
+                        Nullam rhoncus nec elit vitae sollicitudin. Mauris auctor sem libero, vel elementum nulla imperdiet eu. Donec
+                        aliquet sagittis urna. Donec at ex rhoncus, pharetra lorem id, vestibulum ipsum. Mauris eleifend posuere
+                        sagittis. Proin vulputate erat id arcu volutpat, quis euismod mauris blandit. Nulla blandit, magna eget
+                        rhoncus interdum, ipsum augue egestas turpis, faucibus pellentesque nisi libero eu metus. In at ante nec
+                        velit condimentum porta sit amet sit amet ante. Duis finibus fringilla velit, nec euismod urna faucibus
+                        sodales.<br><br>
+
+                        Nunc facilisis justo id nisi venenatis, in viverra arcu eleifend. Vestibulum finibus elementum mauris,
+                        a euismod lorem vestibulum eget. Sed hendrerit sed lectus eget rhoncus. Morbi id nisl ac dui pretium
+                        maximus. Vestibulum sagittis iaculis ipsum non pretium. Ut ac ornare risus. Mauris vel risus sed orci
+                        lacinia efficitur vitae in enim.<br><br>
+
+                        Vestibulum quis varius nisl, molestie consectetur turpis. In rhoncus aliquet volutpat. Nunc non tincidunt
+                        turpis. Nulla facilisi. Nunc eget facilisis orci. Aliquam gravida scelerisque neque, sed dapibus dui commodo
+                        at. Vestibulum nec justo a libero convallis imperdiet. Mauris accumsan purus mauris, eget vehicula nulla
+                        blandit a. Aliquam lobortis augue sit amet nulla ornare, tempor accumsan nunc fringilla. Morbi sem dui,
+                        sagittis non ex vitae, dictum rutrum justo.<br><br>
+
+                        Vestibulum quis varius nisl, molestie consectetur turpis. In rhoncus aliquet volutpat. Nunc non tincidunt
+                        turpis. Nulla facilisi. Nunc eget facilisis orci. Aliquam gravida scelerisque neque, sed dapibus dui commodo
+                        at. Vestibulum nec justo a libero convallis imperdiet. Mauris accumsan purus mauris, eget vehicula nulla
+                        blandit a. Aliquam lobortis augue sit amet nulla ornare, tempor accumsan nunc fringilla. Morbi sem dui,
+                        sagittis non ex vitae, dictum rutrum justo.<br><br>
+
+                        Vestibulum quis varius nisl, molestie consectetur turpis. In rhoncus aliquet volutpat. Nunc non tincidunt
+                        turpis. Nulla facilisi. Nunc eget facilisis orci. Aliquam gravida scelerisque neque, sed dapibus dui commodo
+                        at. Vestibulum nec justo a libero convallis imperdiet. Mauris accumsan purus mauris, eget vehicula nulla
+                        blandit a. Aliquam lobortis augue sit amet nulla ornare, tempor accumsan nunc fringilla. Morbi sem dui,
+                        sagittis non ex vitae, dictum rutrum justo.<br><br>
+                    </p>
+                </div>
             {% for platform in platforms %}
                 <div class="tab-pane fade" id={{ re.sub(' +', '',"{}".format(platform)) }} role="tabpanel" aria-labelledby={{ re.sub(' +', '',"pills-{}-tab".format(platform))}}><iframe src="https://www.utep.edu" style="border:none;"></iframe></div>
             {% endfor %}
             </div>
         </div>
+        <script>
+            window.parent.postMessage({
+              event: 'login-with-token',
+              loginToken: 'your-token'
+            }, 'http://www.chat.service:3000');
+        </script>
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
