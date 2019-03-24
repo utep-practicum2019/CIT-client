@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask import Flask, render_template, redirect, url_for, request, session, send_file
 import re
 from Database.database_handler import DatabaseHandler
 
@@ -17,6 +17,7 @@ def home():
         return redirect(url_for('login'))
     username = session['username']
     group_id = session['group_id']
+    remote_ip = session['remote_ip']
 
     group_info = DatabaseHandler.find('groups', group_id)
     print (group_info)
@@ -26,7 +27,7 @@ def home():
     team = group_info['members']
     print(team)
 
-    return render_template('index.html', username=username, platforms=platforms, team=team, re=re)
+    return render_template('index.html', username=username, platforms=platforms, remote_ip=remote_ip, team=team, re=re)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -39,9 +40,11 @@ def login():
         else:
             session['username'] = request.form['username']
             session['group_id'] = user['group_id']
+            session['remote_ip'] = user['remote_ip']
             session['logged_in'] = True
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
+
 
 
 @app.route('/logout')
