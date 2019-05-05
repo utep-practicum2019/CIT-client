@@ -11,10 +11,14 @@ class Connection():
     NOT_CONNECTED = 0
     CONNECTING = 1
     CONNECTED = 2
+
     NOT_DISCONNECTING = 3
     DISCONNECTING = 4
-    
+
     CONNECT_ATTEMPT_TIMEOUT_VAL = 5
+
+    REFRESHING = 6
+    NOT_REFRESHING = 7
     
     POSIX = False
     if platform == "linux" or platform == "linux2":
@@ -27,6 +31,7 @@ class Connection():
         self.connectionName = connectionName
         self.connStatus = Connection.NOT_CONNECTED
         self.disConnStatus = Connection.NOT_DISCONNECTING
+        self.refreshConnStatus = Connection.NOT_REFRESHING
         self.serverIP = None
         self.localIPAddress = ""
         self.remoteIPAddress = ""
@@ -39,6 +44,10 @@ class Connection():
 
     #abstractmethod
     def disconnect(self):
+        raise NotImplementedError()
+
+    #abstractmethod
+    def refresh(self):
         raise NotImplementedError()
 
     #abstractmethod

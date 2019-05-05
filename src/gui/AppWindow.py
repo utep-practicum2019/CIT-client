@@ -30,9 +30,9 @@ class AppWindow(Gtk.ApplicationWindow):
         
         self.connectionBox = ConnectionBox(self, self.vmManageBox)
         self.box_outer.pack_start(self.connectionBox, True, True, 0)
-		
+
         self.connect('delete_event', self.catchClosing)
-		
+
     def catchClosing(self, widget, event):
         logging.debug("delete_event(): instantiated")
         e = Engine.getInstance()
@@ -75,3 +75,4 @@ class AppWindow(Gtk.ApplicationWindow):
                         Gtk.ButtonsType.OK_CANCEL, "Could not close connection, try again later.")
         logging.debug("catchClosing(): returning True")
         return True
+

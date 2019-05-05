@@ -32,7 +32,7 @@ class PPTPConnectionWin(Connection):
         except Exception as x:
             logging.error(" checkConnExists(): Something went wrong while running process: " + str(checkCmd) + "\r\n" + str(x))
             return None
-            
+
     def removeConnProcess(self):
         logging.debug("removeConnProcess(): instantiated")
         startupinfo = subprocess.STARTUPINFO()
@@ -59,7 +59,7 @@ class PPTPConnectionWin(Connection):
         try:
             process = Popen(shlex.split(addCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
             result = process.communicate()[0]
-            
+
             if str(result).strip() != self.connectionName:
                 logging.error("addConn(): Could not add connection: " + str(result) + " != " + self.connectionName)
                 return False
@@ -69,7 +69,7 @@ class PPTPConnectionWin(Connection):
         except Exception as x:
             logging.error(" addConn(): Something went wrong while running process: " + str(addCmd) + "\r\n" + str(x))
             return False
-    
+
     def getVPNLocalIP(self):
         #(Get-NetIPAddress -InterfaceAlias CIT-client).IPAddress
         logging.debug("getVPNLocalIP(): instantiated")
@@ -79,7 +79,7 @@ class PPTPConnectionWin(Connection):
         try:
             process = Popen(shlex.split(getLocalCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
             result = process.communicate()[0]
-            
+
             if str(result) == "":
                 logging.error("getVPNLocalIP(): Could not get VPN local IP: " + str(result))
             else:
@@ -88,17 +88,17 @@ class PPTPConnectionWin(Connection):
         except Exception as x:
             logging.error(" getVPNLocalIP(): Something went wrong while running process: " + str(getLocalCmd) + "\r\n" + str(x))
             return False
-        
+
     def getVPNServerIP(self):
         logging.debug("getVPNServerIP(): instantiated")
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
+
         getServerCmd = "powershell -WindowStyle Hidden (Get-VpnConnection -Name "+self.connectionName+").ServerAddress"
         try:
             process = Popen(shlex.split(getServerCmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
             result = process.communicate()[0]
-            
+
             if str(result) == "":
                 logging.error("getServerCmd(): Could not get VPN server IP: " + str(result))
             else:
@@ -107,7 +107,7 @@ class PPTPConnectionWin(Connection):
         except Exception as x:
             logging.error(" getVPNServerIP(): Something went wrong while running process: " + str(getServerCmd) + "\r\n" + str(x))
             return False
-        
+
     def connProcess(self, cmd):
         logging.debug("connProcess(): instantiated")
         startupinfo = subprocess.STARTUPINFO()
@@ -116,7 +116,7 @@ class PPTPConnectionWin(Connection):
         localAddressSet = False
         remoteAddressSet = False
         connSuccess = False
-        
+
         #First remove connection if it already exists
         if self.checkConnExists() == True:
             if self.removeConnProcess() == False:
@@ -129,7 +129,7 @@ class PPTPConnectionWin(Connection):
             logging.error("connProcess(): addConn unsuccessful, canceling connect and returning")
             self.connStatus = Connection.NOT_CONNECTED
             return False
-        
+
         #Connect to server
         try:
             logging.debug("Starting process: " + str(cmd) + "\r\n")
@@ -145,14 +145,14 @@ class PPTPConnectionWin(Connection):
                         logging.debug("connProcess(): Connection established")
                         connSuccess = True
             logging.info("Process completed: " + cmd)
-                
+
             #Get the VPN local and server IP addresses
             self.localIPAddress = self.getVPNLocalIP()
             if self.localIPAddress == "":
                 logging.error("connProcess(): getVPNLocalIP unsuccessful")
             else:
                 localAddressSet = True
-            
+
             self.remoteIPAddress = self.getVPNServerIP()
             if self.remoteIPAddress == "":
                 logging.error("connProcess(): getVPNServerIP unsuccessful")
@@ -197,14 +197,14 @@ class PPTPConnectionWin(Connection):
                     return False
             logging.info("Process completed: " + cmd)
             self.connStatus = Connection.NOT_CONNECTED
-            
+
             #disconnect
             logging.debug("disconnProcess(): removing connection: " + self.connectionName)
             if self.removeConnProcess() == False:
                 logging.error("connProcess(): removeConn unsuccessful, returning")
                 self.disConnStatus = Connection.NOT_DISCONNECTING
                 return False
-                
+
         #if it existed or not, we clean up
         self.disConnStatus = Connection.NOT_DISCONNECTING
 
@@ -213,11 +213,47 @@ class PPTPConnectionWin(Connection):
         self.username = ""
         self.password = ""
         self.localIPAddress = ""
-        self.serverIPAddress = ""       
+        self.serverIPAddress = ""
+
+    def refreshConnStatusProcess(self, cmd):
+        logging.debug("refreshConnStatusProcess(): instantiated")
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        logging.debug("Starting pptp connection thread")
+        try:
+            logging.debug("Starting process: " + str(cmd) + "\r\n")
+            outlog = ""
+            p = Popen(shlex.split(cmd, posix=self.POSIX), stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
+            while True:
+                out = p.stdout.readline()
+                if out == '' and p.poll() != None:
+                    break
+                if out != '':
+                    logging.debug("refreshConnStatusProcess(): stdout Line: " + out)
+                    if "Connected" in out:
+                        self.refreshConnStatus = Connection.NOT_REFRESHING
+                        self.connStatus = Connection.CONNECTED
+                        return True
+                    elif "Disconnected" in out:
+                        self.refreshConnStatus = Connection.NOT_REFRESHING
+                        self.connStatus = Connection.NOT_CONNECTED
+                        return False
+            self.refreshConnStatus = Connection.NOT_REFRESHING
+            self.connStatus = Connection.NOT_CONNECTED
+            return False
+
+        except Exception as x:
+            logging.error(
+                " refreshConnStatusProcess(): Something went wrong while running process: " + str(cmd) + "\r\n" + str(x))
+            if p != None and p.poll() == None:
+                p.terminate()
+                #self.connStatus = Connection.NOT_CONNECTED
+                self.refreshConnStatus = Connection.NOT_REFRESHING
+                return False
+        logging.info("refreshConnStatusProcess(): Process completed: " + cmd)
 
     def connect(self, serverIP, username, password):
         logging.info("Using: " + username + "/" + password)
-        logging.debug("Starting pptp connection thread")
         self.connStatus = Connection.CONNECTING
         self.serverIP = serverIP
         #["powershell -WindowStyle Hidden", "rasdial %s %s %s" % (name, username, password)
@@ -234,10 +270,19 @@ class PPTPConnectionWin(Connection):
         t = threading.Thread(target=self.disconnProcess, args=(closeConnCmd,))
         t.start()
 
+    def refresh(self):
+        logging.debug( "refreshConnStatus(): instantiated")
+        self.refreshConnStatus = Connection.REFRESHING
+
+        refreshConnStatusCmd = "powershell -WindowStyle Hidden (Get-VpnConnection -Name "+self.connectionName+").ConnectionStatus"
+        #refreshConnStatusCmd = "powershell -WindowStyle Hidden rasdial"
+        t = threading.Thread(target=self.refreshConnStatusProcess, args=(refreshConnStatusCmd,))
+        t.start()
+
     def getStatus(self):
         logging.debug( "getStatus(): instantiated")
         #Don't want to rely on python objects in case we go with 3rd party clients in the future
-        return {"connStatus" : self.connStatus, "disConnStatus" : self.disConnStatus, "connectionName" : self.connectionName, "serverIP" : self.serverIP, "localIP" : self.localIPAddress, "remoteIP" : self.remoteIPAddress}
+        return {"connStatus" : self.connStatus, "disConnStatus" : self.disConnStatus, "refreshConnStatus" : self.refreshConnStatus, "connectionName" : self.connectionName, "serverIP" : self.serverIP, "localIP" : self.localIPAddress, "remoteIP" : self.remoteIPAddress}
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

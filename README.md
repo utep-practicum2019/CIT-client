@@ -14,4 +14,4 @@
   
 ## Live disc
 
-A prebuilt live disc (based on lubuntu) can be downloaded [here](https://drive.google.com/open?id=1219oc62L82qIwUxuDHwdmXJiKIWQC34J)
+A prebuilt live disc (based on lubuntu) can be downloaded [here](https://goo.gl/G66F2L)

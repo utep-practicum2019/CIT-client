@@ -16,6 +16,7 @@ apt-get install python-pip
 apt-get install libgirepository1.0-dev
 apt-get install libdbus-1-dev
 apt-get install python-dbus
+apt-get install libcairo2-dev
 
 pip install virtualenv
 virtualenv $VENV_NAME

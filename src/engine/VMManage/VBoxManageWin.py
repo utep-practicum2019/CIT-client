@@ -9,14 +9,18 @@ import threading
 from time import sleep
 from VMManage import VMManage
 from VM import VM
+import os
 import re
+import configparser
+from engine.Configuration.ConfigurationFile import ConfigurationFile
 
 class VBoxManageWin(VMManage):
-    VBOX_PATH = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
-    
     def __init__(self):
         logging.info("VBoxManageWin.__init__(): instantiated")
         VMManage.__init__(self)
+        self.cf = ConfigurationFile()
+        self.vbox_path = self.cf.getConfig()['VBOX_WIN']['VBOX_PATH']
+
         self.readStatus = VMManage.MANAGER_UNKNOWN
         self.writeStatus = VMManage.MANAGER_UNKNOWN
         #initial refresh
@@ -58,74 +62,78 @@ class VBoxManageWin(VMManage):
         self.readStatus = VMManage.MANAGER_READING
         #clear out the current set
         self.vms = {}
-        vmListCmd = VBoxManageWin.VBOX_PATH + " list vms"
+        vmListCmd = self.vbox_path + " list vms"
         logging.debug("runVMSInfo(): Collecting VM Names using cmd: " + vmListCmd)
-        p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
-        while True:
-            out = p.stdout.readline()
-            if out == '' and p.poll() != None:
-                break
-            if out != '':
-                logging.debug("runVMSInfo(): stdout Line: " + out)
-                logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
-                splitOut = out.split("{")
-                vm = VM()
-                vm.name = splitOut[0].strip()
-                vm.UUID = splitOut[1].split("}")[0].strip()
-                logging.debug("UUID: " + vm.UUID)
-                self.vms[vm.name] = vm
-        p.wait()
-        logging.info("runVMSInfo(): Thread 1 completed: " + vmListCmd)
-        logging.info("Found # VMS: " + str(len(self.vms)))
-        
-        #for each vm, get the machine readable info
-        logging.debug("runVMSInfo(): collecting VM extended info")
-        vmNum = 1
-        for aVM in self.vms:
-            logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
-            vmShowInfoCmd = VBoxManageWin.VBOX_PATH + " showvminfo " + str(self.vms[aVM].UUID) + "" + " --machinereadable"
-            logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
-            p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
+        try:
+            p = Popen(vmListCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
             while True:
                 out = p.stdout.readline()
                 if out == '' and p.poll() != None:
                     break
                 if out != '':
-                    logging.debug("runVMSInfo(): proc output: " + out)
-                    #match example: nic1="none"
-                    res = re.match("nic[0-9]+=", out)
-                    if res:
-                        logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
-                        out = out.strip()
-                        nicNum = out.split("=")[0][3:]
-                        nicType = out.split("=")[1]
-                        self.vms[aVM].adaptorInfo[nicNum] = nicType
-                    res = re.match("groups=", out)
-                    if res:
-                        logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
-                        self.vms[aVM].groups = out.strip()
-                    res = re.match("VMState=", out)
-                    if res:
-                        logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
-                        state = out.strip().split("\"")[1].split("\"")[0]
-                        if state == "running":
-                            self.vms[aVM].state = VM.VM_STATE_RUNNING
-                        elif state == "poweroff":
-                            self.vms[aVM].state = VM.VM_STATE_OFF
-                        else:
-                            self.vms[aVM].state = VM.VM_STATE_OTHER
-                        
+                    logging.debug("runVMSInfo(): stdout Line: " + out)
+                    logging.debug("runVMSInfo(): split Line: " + str(out.split("{")))
+                    splitOut = out.split("{")
+                    vm = VM()
+                    vm.name = splitOut[0].strip()
+                    vm.UUID = splitOut[1].split("}")[0].strip()
+                    logging.debug("UUID: " + vm.UUID)
+                    self.vms[vm.name] = vm
             p.wait()
-            vmNum = vmNum + 1
-        self.readStatus = VMManage.MANAGER_IDLE
-        logging.info("runVMSInfo(): Thread 2 completed: " + vmShowInfoCmd)
+            logging.info("runVMSInfo(): Thread 1 completed: " + vmListCmd)
+            logging.info("Found # VMS: " + str(len(self.vms)))
+
+            #for each vm, get the machine readable info
+            logging.debug("runVMSInfo(): collecting VM extended info")
+            vmNum = 1
+            for aVM in self.vms:
+                logging.debug("runVMSInfo(): collecting # " + str(vmNum) + " of " + str(len(self.vms)))
+                vmShowInfoCmd = self.vbox_path + " showvminfo " + str(self.vms[aVM].UUID) + "" + " --machinereadable"
+                logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
+                p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
+                while True:
+                    out = p.stdout.readline()
+                    if out == '' and p.poll() != None:
+                        break
+                    if out != '':
+                        logging.debug("runVMSInfo(): proc output: " + out)
+                        #match example: nic1="none"
+                        res = re.match("nic[0-9]+=", out)
+                        if res:
+                            logging.debug("Found nic: " + out + " added to " + self.vms[aVM].name)
+                            out = out.strip()
+                            nicNum = out.split("=")[0][3:]
+                            nicType = out.split("=")[1]
+                            self.vms[aVM].adaptorInfo[nicNum] = nicType
+                        res = re.match("groups=", out)
+                        if res:
+                            logging.debug("Found groups: " + out + " added to " + self.vms[aVM].name)
+                            self.vms[aVM].groups = out.strip()
+                        res = re.match("VMState=", out)
+                        if res:
+                            logging.debug("Found vmState: " + out + " added to " + self.vms[aVM].name)
+                            state = out.strip().split("\"")[1].split("\"")[0]
+                            if state == "running":
+                                self.vms[aVM].state = VM.VM_STATE_RUNNING
+                            elif state == "poweroff":
+                                self.vms[aVM].state = VM.VM_STATE_OFF
+                            else:
+                                self.vms[aVM].state = VM.VM_STATE_OTHER
+
+                p.wait()
+                vmNum = vmNum + 1
+            self.readStatus = VMManage.MANAGER_IDLE
+            logging.info("runVMSInfo(): Thread 2 completed: " + vmShowInfoCmd)
+        except Exception as err:
+            logging.error("Error in runVMSInfo(): " + str(err))
+            self.readStatus = VMManage.MANAGER_IDLE
 
     def runVMInfo(self, aVM):
         logging.debug("runVMSInfo(): instantiated")
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         self.readStatus = VMManage.MANAGER_READING
-        vmShowInfoCmd = VBoxManageWin.VBOX_PATH + " showvminfo " + self.vms[aVM].UUID + "" + " --machinereadable"
+        vmShowInfoCmd = self.vbox_path + " showvminfo " + self.vms[aVM].UUID + "" + " --machinereadable"
         logging.debug("runVMSInfo(): Running " + vmShowInfoCmd)
         p = Popen(vmShowInfoCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
         while True:
@@ -163,7 +171,7 @@ class VBoxManageWin(VMManage):
         try:
             logging.debug("runConfigureVM(): instantiated")
             self.writeStatus = VMManage.MANAGER_WRITING
-            vmConfigVMCmd = VBoxManageWin.VBOX_PATH + " modifyvm " + str(vmName) + " --nic" + str(adaptorNum) + " generic" + " --nicgenericdrv1 UDPTunnel " + "--cableconnected" + str(adaptorNum) + " on --nicproperty" + str(adaptorNum) + " sport=" + str(srcPort) + " --nicproperty" + str(adaptorNum) + " dport=" + str(dstPort) + " --nicproperty" + str(adaptorNum) + " dest=" + str(dstIPAddress)
+            vmConfigVMCmd = self.vbox_path + " modifyvm " + str(vmName) + " --nic" + str(adaptorNum) + " generic" + " --nicgenericdrv1 UDPTunnel " + "--cableconnected" + str(adaptorNum) + " on --nicproperty" + str(adaptorNum) + " sport=" + str(srcPort) + " --nicproperty" + str(adaptorNum) + " dport=" + str(dstPort) + " --nicproperty" + str(adaptorNum) + " dest=" + str(dstIPAddress)
             logging.debug("runConfigureVM(): Running " + vmConfigVMCmd)
             subprocess.check_output(vmConfigVMCmd)
             
@@ -178,7 +186,7 @@ class VBoxManageWin(VMManage):
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         self.writeStatus = VMManage.MANAGER_WRITING
         self.readStatus = VMManage.MANAGER_READING
-        vmCmd = VBoxManageWin.VBOX_PATH + " " + cmd
+        vmCmd = self.vbox_path + " " + cmd
         logging.debug("runConfigureVM(): Running " + vmCmd)
         p = Popen(vmCmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
         while True:

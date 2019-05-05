@@ -21,7 +21,6 @@ import subprocess
 import sys
 import re
 import getpass
-import pwd
 
 
 class ListBoxRowWithData(Gtk.ListBoxRow):
@@ -119,15 +118,14 @@ class ConnectionBox(Gtk.ListBox):
 
         command = "python -m webbrowser -n http://" + self.serverIPText + ":5001"
         if re.match('linux', sys.platform):
+            import pwd
             for p in pwd.getpwall():
                 if p[3] >= 999 and re.match('/home', p[5]):
                     user = p[0]
                     break
             process = subprocess.Popen(["su","-", user, "-c", command])
         elif re.match('win32', sys.platform):
-            user = getpass.getuser()
-            logging.debug("open browser for: " + user)
-            process = subprocess.Popen("runas /noprofile /user:" + user + command)
+            process = subprocess.Popen(command)
         else:
             process = None
 

@@ -5,6 +5,7 @@ from gui.Widgets.VMTreeWidget import VMTreeWidget
 from gui.Dialogs.VMRetrieveDialog import VMRetrieveDialog
 from gui.Dialogs.ConfiguringVMDialog import ConfiguringVMDialog
 from engine.Engine import Engine
+from engine.Configuration.ConfigurationFile import ConfigurationFile
 import logging
 
 class ConfigureVMDialog(Gtk.Dialog):
@@ -13,6 +14,9 @@ class ConfigureVMDialog(Gtk.Dialog):
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
              Gtk.STOCK_OK, Gtk.ResponseType.OK))
         self.connName = "citclient"
+        self.cf = ConfigurationFile()
+        self.serverIntIP = self.cf.getConfig()['SERVER']['INTERNAL_IP']
+
         self.connection = connection
         self.vms = {}
         self.vmName = ""
@@ -43,7 +47,12 @@ class ConfigureVMDialog(Gtk.Dialog):
         s = vmRetrieveDialog.getFinalData()
         self.vms = s["mgrStatus"]["vmstatus"]
         vmRetrieveDialog.destroy()
-        
+        logging.error("No VMs were retrieved")
+        if len(self.vms) == 0:
+            noVMsDialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
+            Gtk.ButtonsType.OK, "No VMs were found. If you think this is incorrect, please check the path to VBoxManage in config/config.ini and then restart the program.")
+            noVMsDialog.run()
+            noVMsDialog.destroy()
         treeWidget.populateTreeStore(self.vms)
         
     def onItemSelected(self, selection):
@@ -72,7 +81,8 @@ class ConfigureVMDialog(Gtk.Dialog):
             adaptorNum = self.adaptorSelected[0]
             octetLocal = self.connection["localIP"].split(".")[3]
             #configuringVMDialog = ConfiguringVMDialog(self, self.vmName, self.connection["localIP"], self.connection["remoteIP"], octetLocal, adaptorNum, self.connName)
-            configuringVMDialog = ConfiguringVMDialog(self, self.vmName, self.connection["localIP"], "192.168.0.1", octetLocal, adaptorNum, self.connName)
+            #TODO: get IP from a config file
+            configuringVMDialog = ConfiguringVMDialog(self, self.vmName, self.connection["localIP"], self.serverIntIP, octetLocal, adaptorNum, self.connName)
             configuringVMDialog.run()
             s = configuringVMDialog.getFinalData()
             configuringVMDialog.destroy()

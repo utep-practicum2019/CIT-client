@@ -49,7 +49,22 @@ class Engine:
             return -1
         #if we're good up to this point, run the command
         c = self.conns[connName]        
-        return c.getStatus() # returns {"connStatus" : self.connStatus, "disConnStatus" : self.disConnStatus, "connectionName" : self.connectionName, "serverIP" : self.serverIP}
+        return c.getStatus() # returns "connStatus" : self.connStatus, "disConnStatus" : self.disConnStatus, "refreshConnStatus" : self.refreshConnStatus, "connectionName" : self.connectionName, "serverIP" : self.serverIP, "localIP" : self.localIPAddress, "remoteIP" : self.remoteIPAddress
+
+    def pptpForceRefreshConnStatusCmd(self, args):
+        logging.debug("pptpForceRefreshConnStatusCmd(): instantiated")
+        return self.pptpForceRefreshConnStatus(args.connName)
+
+    def pptpForceRefreshConnStatus(self, connName):
+        if connName not in self.conns:
+            logging.error("Connection does not exist or was not created through the engine")
+            return -1
+        #if we're good up to this point, run the command
+        c = self.conns[connName]
+        logging.info("Got c: " + str(connName) + " : " + str(c) + " from " + str(self.conns))
+        c.refresh()
+        logging.info("PPTP force refresh connection status signal sent: " + connName)
+        return 0
 
     def pptpStartCmd(self, args):
         logging.debug("pptpStartCmd(): instantiated")
@@ -181,7 +196,12 @@ class Engine:
         self.connectionSubParsers = self.connectionParser.add_subparsers(help='manage pptp connections')
 
     # -----------pptp
-        self.pptpStatusParser = self.connectionSubParsers.add_parser('status', help='retrieve connection status')
+        self.pptpStatusParser = self.connectionSubParsers.add_parser('forcerefreshconnstatus', help='retrieve connection status')
+        self.pptpStatusParser.add_argument('connName', metavar='<connection name>',
+                                           help='name of connection to retrieve status')
+        self.pptpStatusParser.set_defaults(func=self.pptpForceRefreshConnStatusCmd)
+
+        self.pptpStatusParser = self.connectionSubParsers.add_parser('status', help='retrieve connection status (cached)')
         self.pptpStatusParser.add_argument('connName', metavar='<connection name>',
                                            help='name of connection to retrieve status')
         self.pptpStatusParser.set_defaults(func=self.pptpStatusCmd)
@@ -257,7 +277,7 @@ class Engine:
         except argparse.ArgumentError, exc:
             logging.error(exc.message, '\n', exc.argument)	
         except SystemExit:
-			return
+            return
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)

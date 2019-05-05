@@ -21,7 +21,7 @@ class Application(Gtk.Application):
     def do_activate(self):
         Gtk.Application.do_activate(self)
         if not self.window:
-            self.window = AppWindow(application=self, title="CIT Client")
+            self.window = AppWindow(application=self, title="CIT Client 0.81")
         self.window.present()
         self.window.show_all()
 
