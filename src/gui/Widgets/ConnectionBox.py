@@ -116,7 +116,7 @@ class ConnectionBox(Gtk.ListBox):
         if button.get_label() != "Launch CIT":
             return
 
-        command = "python -m webbrowser -n http://" + self.serverIPText + ":5001"
+        command = "python -m webbrowser -n http://" + self.serverIPText
         if re.match('linux', sys.platform):
             import pwd
             for p in pwd.getpwall():
