@@ -12,6 +12,6 @@
    source ./install_linux.sh
    ```
   
-## Live disc
+## WINDOWS EXE
 
-A prebuilt live disc (based on lubuntu) can be downloaded [here](https://drive.google.com/open?id=1hRmTna6oxoqgh-G9MCLieaT2k35V_xQ4)
+A prebuilt Windows executable can be downloaded [here](https://drive.google.com/open?id=1hRmTna6oxoqgh-G9MCLieaT2k35V_xQ4)
