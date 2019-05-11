@@ -99,7 +99,7 @@ class ConnectionBox(Gtk.ListBox):
             connection_store.append([connection])
 
         self.connection_combo = Gtk.ComboBox.new_with_model(connection_store)
-        self.connection_combo.connect("changed", self.on_country_combo_changed)
+        self.connection_combo.connect("changed", self.on_connection_combo_changed)
         self.renderer_text = Gtk.CellRendererText()
         self.connection_combo.pack_start(self.renderer_text, True)
         self.connection_combo.add_attribute(self.renderer_text, "text", 0)
@@ -134,7 +134,7 @@ class ConnectionBox(Gtk.ListBox):
         self.t.start()
 
 
-    def on_country_combo_changed(self, combo):
+    def on_connection_combo_changed(self, combo):
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
