@@ -85,6 +85,28 @@ class ConnectionBox(Gtk.ListBox):
 
         self.add(self.row)
 
+
+        self.row = Gtk.ListBoxRow()
+        self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=50)
+        self.row.add(self.hbox)
+        self.citConnectionLabel = Gtk.Label(xalign=0)
+        self.citConnectionLabel.set_markup("Choose Connection Type: ")
+        self.hbox.pack_start(self.citConnectionLabel, True, True, 0)
+
+        connection_store = Gtk.ListStore(str)
+        connections = ["PPTP", "L2TP"]
+        for connection in connections:
+            connection_store.append([connection])
+
+        self.connection_combo = Gtk.ComboBox.new_with_model(connection_store)
+        self.connection_combo.connect("changed", self.on_country_combo_changed)
+        self.renderer_text = Gtk.CellRendererText()
+        self.connection_combo.pack_start(self.renderer_text, True)
+        self.connection_combo.add_attribute(self.renderer_text, "text", 0)
+        self.hbox.pack_start(self.connection_combo, False, False, 0)
+        self.add(self.row)
+
+
         self.row = Gtk.ListBoxRow()
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=50)
         self.row.add(self.hbox)
@@ -110,6 +132,19 @@ class ConnectionBox(Gtk.ListBox):
         self.QUIT_SIGNAL = threading.Event()
         self.t = threading.Thread(target=self.watchStatus, args=(self.QUIT_SIGNAL, ))
         self.t.start()
+
+
+    def on_country_combo_changed(self, combo):
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            connection = model[tree_iter][0]
+            print("Selected: country=%s" % connection)
+            if connection == "PPTP":
+                print("The logic for PPTP can go here...")
+            if connection == "L2TP":
+                print("The logic for L2TP can go here...")
+
 
     def openCITTab(self, button):
         logging.debug("openCITTab(): initiated")
